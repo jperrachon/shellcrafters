@@ -1,14 +1,11 @@
-// minish.c
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
-#include <pwd.h>
-#include <grp.h>
-#include <errno.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include "minish.h"
+
+#define MAX_COMMAND_LENGTH 1024
+#define MAX_ARGUMENTS 100
+#define HISTORY_SIZE 100
 
 int status = 0;
 char history[HISTORY_SIZE][MAX_COMMAND_LENGTH];
@@ -18,47 +15,42 @@ int linea2argv(char *linea, int argc, char **argv) {
     int count = 0;
     char *token = strtok(linea, " \t\n");
     while (token != NULL && count < argc - 1) {
-        argv[count++] = strdup(token);
+        argv[count++] = token;
         token = strtok(NULL, " \t\n");
     }
     argv[count] = NULL;
     return count;
 }
 
-struct builtin_struct builtin_arr[] = {
-    {"exit", builtin_exit, "exit [N] - termina el shell, admite un parámetro que es el status de retorno"},
-    {"pid", builtin_pid, "pid - muestra el process id del shell"},
-    {"uid", builtin_uid, "uid - muestra el userid como número y también el nombre de usuario"},
-    {"gid", builtin_gid, "gid - muestra el grupo principal y los grupos secundarios del usuario"},
-    {"getenv", builtin_getenv, "getenv variable [variable ...] - muestra el valor de dicha(s) variable(s) de ambiente"},
-    {"setenv", builtin_setenv, "setenv variable valor - define una variable nueva de ambiente o cambia el valor de una variable de ambiente existente"},
-    {"unsetenv", builtin_unsetenv, "unsetenv var [var ...] - elimina variables de ambiente"},
-    {"cd", builtin_cd, "cd [dir] - cambiar el directorio corriente"},
-    {"status", builtin_status, "status - muestra el status de retorno del último comando ejecutado"},
-    {"help", builtin_help, "help [comando] - muestra la ayuda de los comandos internos"},
-    {"dir", builtin_dir, "dir [texto/directorio] - lista los archivos del directorio"},
-    {"history", builtin_history, "history [N] - muestra los N comandos anteriores"}
-};
-
-struct builtin_struct *builtin_lookup(char *cmd) {
-    for (int i = 0; i < sizeof(builtin_arr) / sizeof(struct builtin_struct); i++) {
-        if (strcmp(builtin_arr[i].cmd, cmd) == 0) {
-            return &builtin_arr[i];
-        }
+int builtin_exit(int argc, char **argv) {
+    if (argc > 1) {
+        status = atoi(argv[1]);
     }
-    return NULL;
+    exit(status);
+    return 0; // This will never be reached
+}
+
+int builtin_pid(int argc, char **argv) {
+    printf("Process ID: %d\n", getpid());
+    return 0;
+}
+
+int builtin_uid(int argc, char **argv) {
+    printf("User ID: %d\n", getuid());
+    return 0;
+}
+
+int builtin_gid(int argc, char **argv) {
+    printf("Group ID: %d\n", getgid());
+    return 0;
 }
 
 int ejecutar(int argc, char **argv) {
-    struct builtin_struct *builtin = builtin_lookup(argv[0]);
-    if (builtin) {
-        return builtin->func(argc, argv);
-    } else {
-        return externo(argc, argv);
-    }
-}
+    if (strcmp(argv[0], "exit") == 0) return builtin_exit(argc, argv);
+    if (strcmp(argv[0], "pid") == 0) return builtin_pid(argc, argv);
+    if (strcmp(argv[0], "uid") == 0) return builtin_uid(argc, argv);
+    if (strcmp(argv[0], "gid") == 0) return builtin_gid(argc, argv);
 
-int externo(int argc, char **argv) {
     pid_t pid = fork();
     if (pid == 0) {
         execvp(argv[0], argv);
@@ -84,7 +76,9 @@ void prompt() {
 }
 
 void load_history() {
-    FILE *file = fopen(strcat(getenv("HOME"), "/.minish_history"), "r");
+    char history_path[1024];
+    snprintf(history_path, sizeof(history_path), "%s/.minish_history", getenv("HOME"));
+    FILE *file = fopen(history_path, "r");
     if (file != NULL) {
         while (fgets(history[history_count], MAX_COMMAND_LENGTH, file) != NULL && history_count < HISTORY_SIZE) {
             history[history_count][strcspn(history[history_count], "\n")] = '\0';
@@ -95,7 +89,9 @@ void load_history() {
 }
 
 void save_history() {
-    FILE *file = fopen(strcat(getenv("HOME"), "/.minish_history"), "w");
+    char history_path[1024];
+    snprintf(history_path, sizeof(history_path), "%s/.minish_history", getenv("HOME"));
+    FILE *file = fopen(history_path, "w");
     if (file != NULL) {
         for (int i = 0; i < history_count; i++) {
             fprintf(file, "%s\n", history[i]);
