@@ -18,4 +18,4 @@ ejecutar.o: ejecutar.c minish.h
 	$(CC) $(CFLAGS) -c ejecutar.c
 
 clean:
-	rm -f *.o minish
+	 rm -f *.o minish

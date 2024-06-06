@@ -115,8 +115,6 @@ int builtin_cd(int argc, char **argv) {
 }
 
 int builtin_status(int argc, char **argv) {
-    // Implementa esta función según sea necesario para mostrar el estado del último comando ejecutado.
-    // Aquí se asume una variable global `last_status` que debe ser actualizada en `externo` y `ejecutar`.
     extern int last_status;
     printf("Status: %d\n", last_status);
     return 0;
@@ -154,11 +152,13 @@ int builtin_dir(int argc, char **argv) {
 }
 
 int builtin_history(int argc, char **argv) {
-
-    extern char **history;
+    extern char *history[];
     extern int history_count;
     int limit = (argc > 1) ? atoi(argv[1]) : history_count;
-    for (int i = 0; i < limit && i < history_count; i++) {
+    if (limit > history_count) {
+        limit = history_count;
+    }
+    for (int i = 0; i < limit; i++) {
         printf("%d: %s\n", i + 1, history[i]);
     }
     return 0;
