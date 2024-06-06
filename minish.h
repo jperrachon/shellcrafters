@@ -1,26 +1,20 @@
-// minish.h
 #ifndef MINISH_H
 #define MINISH_H
 
-#define MAX_COMMAND_LENGTH 1024
-#define MAX_ARGUMENTS 100
-#define HISTORY_SIZE 100
-
 struct builtin_struct {
     char *cmd;
-    int (*func) (int, char **);
+    int (*func)(int, char **);
     char *help_txt;
 };
 
 extern struct builtin_struct builtin_arr[];
-extern int status;
+extern struct builtin_struct *builtin_lookup(char *cmd);
 
 int linea2argv(char *linea, int argc, char **argv);
-struct builtin_struct *builtin_lookup(char *cmd);
 int ejecutar(int argc, char **argv);
 int externo(int argc, char **argv);
 
-// Built-in command functions
+// Funciones para cada comando interno
 int builtin_exit(int argc, char **argv);
 int builtin_pid(int argc, char **argv);
 int builtin_uid(int argc, char **argv);
@@ -34,9 +28,4 @@ int builtin_help(int argc, char **argv);
 int builtin_dir(int argc, char **argv);
 int builtin_history(int argc, char **argv);
 
-// History functions
-void load_history();
-void save_history();
-void add_to_history(const char *command);
-
-#endif // MINISH_H
+#endif
