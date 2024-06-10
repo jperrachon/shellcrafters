@@ -5,8 +5,8 @@
 #include "minish.h"
 
 extern int last_status; // Para almacenar el estado del último comando ejecutado
-
 int ejecutar(int argc, char **argv) {
+    // Esta función se encarga de ejecutar comandos internos o externos
     struct builtin_struct *builtin_cmd = builtin_lookup(argv[0]);
     if (builtin_cmd) {
         last_status = builtin_cmd->func(argc, argv);
@@ -17,6 +17,7 @@ int ejecutar(int argc, char **argv) {
 }
 
 int externo(int argc, char **argv) {
+    // Esta función se encarga de ejecutar comandos externos utilizando fork y execvp
     pid_t pid = fork();
     if (pid == 0) {
         execvp(argv[0], argv);

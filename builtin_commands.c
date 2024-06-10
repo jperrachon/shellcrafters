@@ -23,9 +23,11 @@ struct builtin_struct builtin_arr[] = {
     {"help", builtin_help, "help [comando] - muestra una ayuda más extensa."},
     {"dir", builtin_dir, "dir [texto/directorio] - Simula una ejecución simplificada del comando ls -l."},
     {"history", builtin_history, "history [N] - muestra los N comandos anteriores."},
+    
     {NULL, NULL, NULL}
 };
 
+// Busca un comando interno en la lista de comandos internos y devuelve su estructura correspondiente
 struct builtin_struct *builtin_lookup(char *cmd) {
     for (int i = 0; builtin_arr[i].cmd != NULL; i++) {
         if (strcmp(builtin_arr[i].cmd, cmd) == 0) {
@@ -35,7 +37,8 @@ struct builtin_struct *builtin_lookup(char *cmd) {
     return NULL;
 }
 
-// Implementaciones de los comandos internos
+// Implementación del comando interno "exit"
+// Termina el shell, admite un parámetro que es el status de retorno.
 int builtin_exit(int argc, char **argv) {
     int status = 0;
     if (argc > 1) {
@@ -44,11 +47,15 @@ int builtin_exit(int argc, char **argv) {
     exit(status);
 }
 
+// Implementación del comando interno "pid"
+// Muestra el process id del shell.
 int builtin_pid(int argc, char **argv) {
     printf("PID: %d\n", getpid());
     return 0;
 }
 
+// Implementación del comando interno "uid"
+// Muestra el userid como número y también el nombre de usuario.
 int builtin_uid(int argc, char **argv) {
     uid_t uid = getuid();
     struct passwd *pw = getpwuid(uid);
@@ -60,6 +67,8 @@ int builtin_uid(int argc, char **argv) {
     return 0;
 }
 
+// Implementación del comando interno "gid"
+// Muestra el grupo principal y los grupos secundarios del usuario.
 int builtin_gid(int argc, char **argv) {
     gid_t gid = getgid();
     struct group *gr = getgrgid(gid);
@@ -71,6 +80,8 @@ int builtin_gid(int argc, char **argv) {
     return 0;
 }
 
+// Implementación del comando interno "getenv"
+// Muestra el valor de una o varias variables de ambiente.
 int builtin_getenv(int argc, char **argv) {
     for (int i = 1; i < argc; i++) {
         char *value = getenv(argv[i]);
@@ -83,6 +94,8 @@ int builtin_getenv(int argc, char **argv) {
     return 0;
 }
 
+// Implementación del comando interno "setenv"
+// Define una variable nueva de ambiente o cambia el valor de una variable de ambiente existente.
 int builtin_setenv(int argc, char **argv) {
     if (argc != 3) {
         fprintf(stderr, "Usage: setenv VARIABLE VALUE\n");
@@ -95,6 +108,8 @@ int builtin_setenv(int argc, char **argv) {
     return 0;
 }
 
+// Implementación del comando interno "unsetenv"
+// Elimina una o varias variables de ambiente.
 int builtin_unsetenv(int argc, char **argv) {
     for (int i = 1; i < argc; i++) {
         if (unsetenv(argv[i]) != 0) {
@@ -105,6 +120,8 @@ int builtin_unsetenv(int argc, char **argv) {
     return 0;
 }
 
+// Implementación del comando interno "cd"
+// Cambia el directorio corriente.
 int builtin_cd(int argc, char **argv) {
     char *dir = (argc > 1) ? argv[1] : getenv("HOME");
     if (chdir(dir) != 0) {
@@ -114,12 +131,16 @@ int builtin_cd(int argc, char **argv) {
     return 0;
 }
 
+// Implementación del comando interno "status"
+// Muestra el status de retorno del último comando ejecutado.
 int builtin_status(int argc, char **argv) {
     extern int last_status;
     printf("Status: %d\n", last_status);
     return 0;
 }
 
+// Implementación del comando interno "help"
+// Muestra una ayuda más extensa.
 int builtin_help(int argc, char **argv) {
     if (argc == 1) {
         for (int i = 0; builtin_arr[i].cmd != NULL; i++) {
@@ -136,6 +157,8 @@ int builtin_help(int argc, char **argv) {
     return 0;
 }
 
+// Implementación del comando interno "dir"
+// Simula una ejecución simplificada del comando ls -l.
 int builtin_dir(int argc, char **argv) {
     char *dir = (argc > 1) ? argv[1] : ".";
     DIR *dp = opendir(dir);
@@ -151,6 +174,8 @@ int builtin_dir(int argc, char **argv) {
     return 0;
 }
 
+// Implementación del comando interno "history"
+// Muestra los N comandos anteriores.
 int builtin_history(int argc, char **argv) {
     extern char *history[];
     extern int history_count;
