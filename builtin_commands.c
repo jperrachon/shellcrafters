@@ -44,6 +44,7 @@ int builtin_exit(int argc, char **argv) {
     if (argc > 1) {
         status = atoi(argv[1]);
     }
+    save_history();
     exit(status);
 }
 

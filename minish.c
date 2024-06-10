@@ -15,17 +15,22 @@ void add_to_history(char *linea) {
         memmove(history, history + 1, (MAX_HISTORY - 1) * sizeof(char *));
         history_count--;
     }
+    linea[strcspn(linea, "\n")] = '\0';
     history[history_count++] = strdup(linea);
 }
 
 void load_history() {
+    printf("\nloading history...\n");
     char *home_dir = getenv("HOME");
     char history_file[256];
     snprintf(history_file, sizeof(history_file), "%s/.minish_history", home_dir);
-
-    FILE *file = fopen(history_file, "r");
-    if (file == NULL) {
-        perror("fopen");
+    
+    FILE *file;
+    file = fopen(history_file, "r");
+    if (file==NULL){
+        printf("\nno minish_history found, creating file...\n");
+        file = fopen(history_file, "w");
+        fclose(file);
         return;
     }
 
@@ -39,12 +44,14 @@ void load_history() {
 }
 
 void save_history() {
+    printf("\nsaving history...\n");
     char *home_dir = getenv("HOME");
     char history_file[256];
     snprintf(history_file, sizeof(history_file), "%s/.minish_history", home_dir);
 
     FILE *file = fopen(history_file, "w");
     if (file == NULL) {
+        printf("no se pudo guardar el historial de comandos");
         perror("fopen");
         return;
     }
@@ -80,8 +87,6 @@ int main() {
             ejecutar(argc, argv);
         }
     }
-
-    save_history();
 
     free(linea);
     for (int i = 0; i < history_count; i++) {
