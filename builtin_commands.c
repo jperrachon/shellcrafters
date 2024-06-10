@@ -7,7 +7,9 @@
 #include <sys/wait.h>
 #include <dirent.h>
 #include <errno.h>
+#include <sys/stat.h>
 #include "minish.h"
+#include <time.h>
 
 // Definición de los comandos internos
 struct builtin_struct builtin_arr[] = {
@@ -79,6 +81,45 @@ int builtin_gid(int argc, char **argv) {
         perror("getgrgid");
     }
     return 0;
+}
+
+// Función para obtener el nombre de usuario a partir del UID
+char* get_username(uid_t uid) {
+    struct passwd *pw = getpwuid(uid);
+    if (pw) {
+        return pw->pw_name;
+    } else {
+        return "Unknown";
+    }
+}
+
+// Función para obtener el nombre del grupo a partir del GID
+char* get_groupname(gid_t gid) {
+    struct group *gr = getgrgid(gid);
+    if (gr) {
+        return gr->gr_name;
+    } else {
+        return "Unknown";
+    }
+}
+
+// Función para obtener la hora de modificación de un archivo
+char* get_modified_time(time_t mtime) {
+    struct tm *timeinfo;
+    timeinfo = localtime(&mtime);
+    return asctime(timeinfo);
+}
+
+// Función para obtener el tipo de archivo
+char *get_file_type(mode_t mode) {
+    if (S_ISREG(mode)) return "file";
+    if (S_ISDIR(mode)) return "directory";
+    if (S_ISCHR(mode)) return "char device";
+    if (S_ISBLK(mode)) return "block device";
+    if (S_ISFIFO(mode)) return "FIFO";
+    if (S_ISLNK(mode)) return "symlink";
+    if (S_ISSOCK(mode)) return "socket";
+    return "unknown";
 }
 
 // Implementación del comando interno "getenv"
@@ -157,24 +198,59 @@ int builtin_help(int argc, char **argv) {
     }
     return 0;
 }
+void search_directories(const char *root, const char *text) {
+    DIR *dp = opendir(root);
+    if (dp == NULL) {
+        return;
+    }
+    struct dirent *entry;
+    while ((entry = readdir(dp)) != NULL) {
+        if (entry->d_type == DT_DIR && 
+            strcmp(entry->d_name, ".") != 0 && 
+            strcmp(entry->d_name, "..") != 0) {
+            if (strstr(entry->d_name, text) != NULL) {
+                printf("Directory containing '%s': %s/%s\n", text, root, entry->d_name);
+            }
+            char path[PATH_MAX];
+            snprintf(path, sizeof(path), "%s/%s", root, entry->d_name);
+            search_directories(path, text);
+        }
+    }
+    closedir(dp);
+}
 
 // Implementación del comando interno "dir"
 // Simula una ejecución simplificada del comando ls -l.
 int builtin_dir(int argc, char **argv) {
     char *dir = (argc > 1) ? argv[1] : ".";
+    char *filter = (argc > 2) ? argv[2] : NULL;
     DIR *dp = opendir(dir);
     if (dp == NULL) {
-        perror("opendir");
+        fprintf(stderr, "opendir failed for '%s': %s\n", dir, strerror(errno));
+        printf("Searching for directories containing '%s'...\n", dir);
+        search_directories(".", dir);
         return 1;
     }
     struct dirent *entry;
     while ((entry = readdir(dp)) != NULL) {
-        printf("%s\n", entry->d_name);
+        if (filter == NULL || strstr(entry->d_name, filter) != NULL) {
+            char path[PATH_MAX];
+            snprintf(path, sizeof(path), "%s/%s", dir, entry->d_name);
+            struct stat st;
+            if (stat(path, &st) == 0) {
+                printf("%s ", get_file_type(st.st_mode));
+                printf("%ld ", st.st_nlink);
+                printf("%s ", get_username(st.st_uid));
+                printf("%s ", get_groupname(st.st_gid));
+                printf("%lld ", (long long)st.st_size);
+                printf("%s ", get_modified_time(st.st_mtime));
+                printf("%s\n", entry->d_name);
+            }
+        }
     }
     closedir(dp);
     return 0;
 }
-
 // Implementación del comando interno "history"
 // Muestra los N comandos anteriores.
 int builtin_history(int argc, char **argv) {
