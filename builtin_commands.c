@@ -41,25 +41,22 @@ struct builtin_struct *builtin_lookup(char *cmd) {
 
 // Implementación del comando interno "exit"
 // Termina el shell, admite un parámetro que es el status de retorno.
-int builtin_exit(int argc, char **argv) {
+int builtin_exit() {
     int status = 0;
-    if (argc > 1) {
-        status = atoi(argv[1]);
-    }
     save_history();
     exit(status);
 }
 
 // Implementación del comando interno "pid"
 // Muestra el process id del shell.
-int builtin_pid(int argc, char **argv) {
+int builtin_pid() {
     printf("PID: %d\n", getpid());
     return 0;
 }
 
 // Implementación del comando interno "uid"
 // Muestra el userid como número y también el nombre de usuario.
-int builtin_uid(int argc, char **argv) {
+int builtin_uid() {
     uid_t uid = getuid();
     struct passwd *pw = getpwuid(uid);
     if (pw) {
@@ -72,7 +69,7 @@ int builtin_uid(int argc, char **argv) {
 
 // Implementación del comando interno "gid"
 // Muestra el grupo principal y los grupos secundarios del usuario.
-int builtin_gid(int argc, char **argv) {
+int builtin_gid() {
     gid_t gid = getgid();
     struct group *gr = getgrgid(gid);
     if (gr) {
@@ -175,7 +172,7 @@ int builtin_cd(int argc, char **argv) {
 
 // Implementación del comando interno "status"
 // Muestra el status de retorno del último comando ejecutado.
-int builtin_status(int argc, char **argv) {
+int builtin_status() {
     extern int last_status;
     printf("Status: %d\n", last_status);
     return 0;

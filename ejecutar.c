@@ -12,11 +12,11 @@ int ejecutar(int argc, char **argv) {
         last_status = builtin_cmd->func(argc, argv);
         return last_status;
     } else {
-        return externo(argc, argv);
+        return externo(argv);
     }
 }
 
-int externo(int argc, char **argv) {
+int externo(char **argv) {
     // Esta función se encarga de ejecutar comandos externos utilizando fork y execvp
     pid_t pid = fork();
     if (pid == 0) {
