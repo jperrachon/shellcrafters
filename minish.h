@@ -13,6 +13,8 @@ extern struct builtin_struct *builtin_lookup(char *cmd);
 int linea2argv(char *linea, int argc, char **argv);
 int ejecutar(int argc, char **argv);
 int externo(char **argv);
+void save_history();
+void load_history();
 
 // Funciones para cada comando interno
 int builtin_exit();
