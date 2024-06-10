@@ -197,6 +197,7 @@ int builtin_help(int argc, char **argv) {
     }
     return 0;
 }
+// Busca directorios que contengan el texto
 void search_directories(const char *root, const char *text) {
     DIR *dp = opendir(root);
     if (dp == NULL) {
@@ -226,7 +227,7 @@ int builtin_dir(int argc, char **argv) {
     DIR *dp = opendir(dir);
     if (dp == NULL) {
         fprintf(stderr, "opendir failed for '%s': %s\n", dir, strerror(errno));
-        printf("Searching for directories containing '%s'...\n", dir);
+        printf("Searching for directories containing '%s'...\n", dir); // Busca directorios que contengan el texto
         search_directories(".", dir);
         return 1;
     }
