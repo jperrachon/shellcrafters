@@ -2,6 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include "minish.h"
+#include <signal.h>
+
+void intHandler() {
+    printf("ctrl + c detectado, ignorado");
+}
+
 
 #define MAX_HISTORY 100
 
@@ -18,6 +24,7 @@ void add_to_history(char *linea) {
     linea[strcspn(linea, "\n")] = '\0';
     history[history_count++] = strdup(linea);
 }
+
 
 void load_history() {
     printf("\nloading history...\n");
@@ -68,6 +75,8 @@ int main() {
     size_t len = 0;
     int argc;
     char *argv[64];  // Máximo número de argumentos
+
+    signal(SIGINT, intHandler);
 
     load_history();
 
