@@ -11,10 +11,13 @@ int history_count = 0;
 
 void add_to_history(char *linea) {
     if (history_count == MAX_HISTORY) {
+        //borrar commando mas viejo del heap
         free(history[0]);
+        //shift por 1 hacie el comienzo del array historia. 
         memmove(history, history + 1, (MAX_HISTORY - 1) * sizeof(char *));
         history_count--;
     }
+    //colocar copia del string del comando nuevo en el heap y colocar pointer al final del array history
     history[history_count++] = strdup(linea);
 }
 
