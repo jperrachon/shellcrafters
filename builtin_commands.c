@@ -11,6 +11,7 @@
 #include "minish.h"
 #include <time.h>
 
+extern int last_status;
 // Definición de los comandos internos
 struct builtin_struct builtin_arr[] = {
     {"exit", builtin_exit, "exit [N] - termina el shell, admite un parámetro que es el status de retorno."},
@@ -41,10 +42,22 @@ struct builtin_struct *builtin_lookup(char *cmd) {
 
 // Implementación del comando interno "exit"
 // Termina el shell, admite un parámetro que es el status de retorno.
-int builtin_exit() {
-    int status = 0;
+int builtin_exit(int argc, char **argv) {
     save_history();
-    exit(status);
+    if (argc>2){
+        printf("uso invalido de exit, demaseados argumentos");
+        return 0;
+    }
+    
+    int retval = (argc==1) ? last_status : atoi(argv[1]);
+    
+    if(retval==0 && 0!=argv[1]){
+        printf("el argumento dado no es un numero");
+        return 0;
+    }
+    
+    printf("\nretval: %s\n",argv[1]);
+    exit(retval);
 }
 
 // Implementación del comando interno "pid"
