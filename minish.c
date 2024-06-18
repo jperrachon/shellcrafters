@@ -94,6 +94,9 @@ int main() {
         argc = linea2argv(linea, 64, argv);
         if (argc > 0) {
             ejecutar(argc, argv);
+            for (int i = 0;i<=argc;i++){
+                free(argv[i]);
+            }
         }
     }
 
